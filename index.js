@@ -10,21 +10,26 @@ console.log('[INFO] Server is listening on port: ', port);
 server.on('request', (req, res) => {
   const urlObject = urlParser.parse(req.url);
 
+  // Respond with HTML title and some text.
   res.writeHead(200, { 'Content-Type': 'text/html'});
   res.write('<html>');
   res.write('<h1>Tom Cruise Movies</h1>');
   res.write('<h3>You have reached the ' + urlObject.pathname + '</h3>');
 
-  // If no filter was presented we want to show all movies
-  const movies = getMovies();
+  // Retrieve all movies from our Database.
+  let movies = getMovies();
 
   if(urlObject.query !== null) {
     let key = urlObject.query.substring(0,  urlObject.query.indexOf('='));
-    let value = decodeURI(urlObject.substring(urlObject.query.indexOf('=') + 1, urlObject.query.length));
+    let value = decodeURI(urlObject.query.substring(urlObject.query.indexOf('=') + 1, urlObject.query.length));
 
-    movies.filter(movie => movie[key].toUpperCase().includes(value.toUpperCase()));
+    // Update movies to include the filtered list from the query params
+    movies = movies.filter(movie => movie[key].toUpperCase().includes(value.toUpperCase()));
   }
+
   res.write('<ul>');
+
+  // Switch between different "pages" of our App.
   switch(urlObject.pathname) {
     case "/":
         // For Each movie write it in the response
@@ -41,6 +46,8 @@ server.on('request', (req, res) => {
     default:
         res.write('<p>Sorry I didnt recognize that route</p>');
   }
+
+  // Finish up by closing all our un-closed HTML tags
   res.write('</ul>');
   res.write('</html>');
 });
